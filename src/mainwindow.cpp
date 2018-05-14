@@ -290,6 +290,9 @@ void MainWindow::initView()
 
     // Payload column expands as needed
     // horizontal scrolling
+    for (int i = 0; i < 12 ;i++) {
+        ui->tableView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Fixed);
+    }
     ui->tableView->horizontalHeader()->setSectionResizeMode(12, QHeaderView::ResizeToContents);
     // Some decoder-plugins can create very long payloads, which in turn severly impact performance
     // So set some limit on what is displayed in the tableview. All details are always available using the message viewer-plugin
@@ -939,6 +942,22 @@ void MainWindow::openRecentFile()
     }
 }
 
+
+bool isDLS(QString filename)
+{
+    bool ret = false;
+    QFile file(filename);
+    if (file.open(QIODevice::ReadOnly)) {
+        char BUFF[4] = {0};
+        file.read(BUFF, 3);
+        if (BUFF[0] == 'D' && BUFF[1] == 'L' && BUFF[2] == 'S') {
+            ret = true;
+        }
+        file.close();
+    }
+    return ret;
+}
+
 bool MainWindow::openDltFile(QStringList fileNames)
 {
     /* close existing file */
@@ -969,6 +988,51 @@ bool MainWindow::openDltFile(QStringList fileNames)
             outputfile.close();
         }
     }
+
+
+
+    if (isDLS(fileNames.last())) {
+        QString fileName = fileNames.last();
+        workingDirectory.setDltDirectory(QFileInfo(fileName).absolutePath());
+
+        QString fileName_out = fileNames.last()+"_dls_flt.dlt";
+
+        outputfile.setFileName(fileName_out);
+        setCurrentFile(fileName_out);
+
+        if(outputfile.open(QIODevice::WriteOnly|QIODevice::Append))
+        {
+            fileNames.clear();
+            fileNames.append(fileName_out);
+            openFileNames = fileNames;
+            DltFile importfile;
+
+            dlt_file_init(&importfile,0);
+
+            /* open DLT stream file */
+            dlt_file_open(&importfile,fileName.toLatin1(),0);
+
+            /* parse and build index of complete log file and show progress */
+            while (dlt_file_read_raw(&importfile,false,0)>=0)
+            {
+                // https://bugreports.qt-project.org/browse/QTBUG-26069
+                outputfile.seek(outputfile.size());
+                outputfile.write((char*)importfile.msg.headerbuffer,importfile.msg.headersize);
+                outputfile.write((char*)importfile.msg.databuffer,importfile.msg.datasize);
+                outputfile.flush();
+
+            }
+
+            dlt_file_free(&importfile,0);
+            if(OptManager::getInstance()->isConvert() || OptManager::getInstance()->isPlugin())
+                // if dlt viewer started as converter or with plugin option load file non multithreaded
+                reloadLogFile(false,false);
+            else
+                // normally load log file mutithreaded
+                reloadLogFile();
+            ret = true;
+        }
+    } else {
 
     /* open existing file and append new data */
     outputfile.setFileName(fileNames.last());
@@ -1022,6 +1086,7 @@ bool MainWindow::openDltFile(QStringList fileNames)
               }
             ret = false;
         }
+    }
     }
 
     return ret;
