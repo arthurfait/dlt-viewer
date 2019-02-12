@@ -94,7 +94,8 @@ namespace ToolbarPosition {
         SearchList      = 2,
         // Separator    = 3,
         FindPrevious    = 4,
-        FindNext        = 5
+        FindNext        = 5,
+        AligAll         = 6
     };
 }
 
@@ -393,6 +394,7 @@ public slots:
     void on_action_menuFile_Clear_triggered();
     void on_action_menuFile_Quit_triggered();
     void on_actionFindNext();
+    void on_actionAlignAll();
 private slots:
 
     // Search methods

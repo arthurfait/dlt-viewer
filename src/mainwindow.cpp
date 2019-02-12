@@ -288,11 +288,13 @@ void MainWindow::initView()
     ui->tableView->setColumnWidth(11,40);
     ui->tableView->setColumnWidth(12,400);
 
+
     // Payload column expands as needed
     // horizontal scrolling
     for (int i = 0; i < 12 ;i++) {
         ui->tableView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Fixed);
     }
+
     ui->tableView->horizontalHeader()->setSectionResizeMode(12, QHeaderView::ResizeToContents);
     // Some decoder-plugins can create very long payloads, which in turn severly impact performance
     // So set some limit on what is displayed in the tableview. All details are always available using the message viewer-plugin
@@ -386,6 +388,7 @@ void MainWindow::initSignalConnections()
     connect(m_searchActions.at(ToolbarPosition::FindPrevious), SIGNAL(triggered()), searchDlg, SLOT(findPreviousClicked()));
     connect(m_searchActions.at(ToolbarPosition::FindNext), SIGNAL(triggered()), searchDlg, SLOT(findNextClicked()));
     connect(m_searchActions.at(ToolbarPosition::FindNext), SIGNAL(triggered()), this, SLOT(on_actionFindNext()));
+    connect(m_searchActions.at(ToolbarPosition::AligAll), SIGNAL(triggered()), this, SLOT(on_actionAlignAll()));
 
     connect(searchDlg->CheckBoxSearchtoList,SIGNAL(toggled(bool)),ui->actionSearchList,SLOT(setChecked(bool)));
     connect(ui->actionSearchList,SIGNAL(toggled(bool)),searchDlg->CheckBoxSearchtoList,SLOT(setChecked(bool)));
@@ -1563,7 +1566,7 @@ void MainWindow::contextLoadingFile(QDltMsg &msg)
     if ( (msg.getType()==QDltMsg::DltTypeControl) && (msg.getSubtype()==QDltMsg::DltControlResponse))
     {
         /* find ecu item */
-        EcuItem *ecuitemFound = 0;
+        EcuItem *ecuitemFound = nullptr;
         for(int num = 0; num < project.ecu->topLevelItemCount (); num++)
         {
             EcuItem *ecuitem = (EcuItem*)project.ecu->topLevelItem(num);
@@ -1577,7 +1580,7 @@ void MainWindow::contextLoadingFile(QDltMsg &msg)
         if(!ecuitemFound)
         {
             /* no Ecuitem found, create a new one */
-            ecuitemFound = new EcuItem(0);
+            ecuitemFound = new EcuItem(nullptr);
 
             /* update ECU item */
             ecuitemFound->id = msg.getEcuid();
@@ -1946,6 +1949,11 @@ void MainWindow::on_actionFindNext()
     newCompleter->setCaseSensitivity(Qt::CaseInsensitive);
 }
 
+
+void MainWindow::on_actionAlignAll()
+{
+    ui->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+}
 
 
 void MainWindow::on_action_menuProject_New_triggered()

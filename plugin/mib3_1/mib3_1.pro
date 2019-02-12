@@ -8,19 +8,20 @@ RCC_DIR     = build/rcc
 UI_DIR      = build/ui
 
 # target name
-TARGET = $$qtLibraryTarget(dummyviewerplugin)
+TARGET = $$qtLibraryTarget(mib3_1)
 
 # plugin header files
 HEADERS += \
-    dummyviewerplugin.h \
-    form.h \
-    form_copy.h
+    mib3_1.h \
+    form.h
 
 # plugin source files
 SOURCES += \
-    dummyviewerplugin.cpp \
+    mib3_1.cpp \
     form.cpp
 
-# plugin forms
 FORMS += \
     form.ui
+
+
+
